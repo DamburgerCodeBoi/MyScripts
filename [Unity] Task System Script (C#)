@@ -1,0 +1,310 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering.VirtualTexturing;
+
+public enum Task // An enumeration of the tasks the player can get. Allows the current task to be saved, changed and checked in IF statements.
+{
+    Kitchen = 1,
+    Laundry = 2,
+    TV = 3,
+    Bathroom = 4
+}
+
+public class TaskSystem : MonoBehaviour
+{
+    private Task currentTask; // The current task that the game will recognise and act accordingly to.
+    private int tasksCompleted = 0;
+    private float taskTime = 20.99f;
+
+    UISystem uiSystem;
+    ScoreSystem scoreSystem;
+    TimerSystem timeSystem;
+    ValueSystem valueSystem;
+    private bool isGameOver = false;
+    string gameOver = "You failed to finish the task in time. Game Over! Press 'E' to restart.";
+    string retry = "Retrying Household Frenzy. Get ready.";
+
+    // Kitchen Task Information
+    GameObject plate;
+    ParticleSystem plateFX;
+    string kitchenTaskMessage = "A plate has fallen in the kitchen! Pick it up!";
+    Vector3 plateSpawnPoint = new Vector3(4.75f, 8.15f, 2.5f); // Spawn Point = Moved to as task starts.
+    Vector3 plateReturnPoint = new Vector3(7.25f, 9.85f, 3.0f); // Return Point = Moved to as task finishes.
+
+    // Laundry Task Information
+    GameObject basket;
+    ParticleSystem basketFX;
+    string laundryTaskMessage = "The basket is ready to bring outside to the washing line!";
+    Vector3 basketSpawnPoint = new Vector3(4.0f, 12.4f, -5.0f); // Spawn Point = Moved to as task starts.
+    Vector3 basketReturnPoint = new Vector3(5.0f, 8.15f, 7.5f); // Return Point = Moved to as task finishes.
+
+    // TV Task Information
+    GameObject remote;
+    ParticleSystem remoteFX;
+    string televisionTaskMessage = "The TV is glitching! Where's the remote gone?";
+    Vector3[] remoteSpawnPoints = // Location is randomised between 5 points for variety, hence an array to aid in this.
+    {
+        new Vector3(5.8f, 8.13f, 1.5f),
+        new Vector3(4.5f, 12.4f, -0.3f),
+        new Vector3(-6.5f, 12.4f, 2.4f),
+        new Vector3(5.0f, 12.4f, -8.0f),
+        new Vector3(-4.0f, 8.13f, -8.6f)
+    };
+    Vector3 remoteSelectedSpawnPoint; // The Vector3 that'll store the current selected Vector3 spawn point for the remote.
+    Vector3 remoteReturnPoint = new Vector3(6.4f, 9.53f, -3.5f);
+    GameObject televisionScreen; // Material change to TV screen to display static.
+    Material staticScreen; // Both materials get linked to empty game objects containing their respective materials for interchangeability.
+    // The standard black TV screen material is only used in the TVTask script as it only gets used there.
+
+    // Bathroom Task Information
+    GameObject toiletPaper;
+    ParticleSystem toiletPaperFX;
+    string bathroomTaskMessage = "We need some toilet paper in the bathroom. Get some from the closet!";
+    Vector3 toiletPaperSpawnPoint = new Vector3(-7.0f, 8.4f, -8.75f);
+    Vector3 toiletPaperReturnPoint = new Vector3(6.8f, 14.1f, 2.65f);
+    Vector3 toiletPaperSpawnRotation = Vector3.zero; // A spawn rotation to change the rotation of the toilet paper as it spawns. Return handled in BathroomTask script.
+
+    public void Start()
+    {
+        plate = GameObject.Find("Plate"); // Assigning Game Objects in Start() since it can't be done elsewhere.
+        basket = GameObject.Find("Basket");
+        remote = GameObject.Find("Remote");
+        televisionScreen = GameObject.Find("TVScreen");
+        staticScreen = GameObject.Find("StaticScreen").GetComponent<Renderer>().material;
+        toiletPaper = GameObject.Find("ToiletPaper");
+        
+        plateFX = GameObject.Find("Plate").GetComponent<ParticleSystem>(); // Assigning Particle Systems to items and immediately toggling them until needed.
+        plateFX.Stop();
+        basketFX = GameObject.Find("Basket").GetComponent<ParticleSystem>();
+        basketFX.Stop();
+        remoteFX = GameObject.Find("Remote").GetComponent<ParticleSystem>();
+        remoteFX.Stop();
+        toiletPaperFX = GameObject.Find("ToiletPaper").GetComponent<ParticleSystem>();
+        toiletPaperFX.Stop();
+
+        uiSystem = GameObject.Find("UIManager").GetComponent<UISystem>();
+        scoreSystem = GameObject.Find("ScoreManager").GetComponent<ScoreSystem>();
+        timeSystem = GameObject.Find("TimeManager").GetComponent<TimerSystem>();
+        valueSystem = GameObject.Find("ValueManager").GetComponent<ValueSystem>();
+        this.isGameOver = false;
+
+        currentTask = RandomiseTask();
+
+        Invoke(nameof(SetTask), 5.0f);
+    }
+
+    public GameObject GetItem() // A method called if the item is needed in another script.
+    {
+        switch (currentTask) // A switch statement to check the current task and return the correlated item put in fruition for that task.
+        {
+            case Task.Kitchen:
+                return this.plate;
+            case Task.Laundry:
+                return this.basket;
+            case Task.TV:
+                return this.remote;
+            case Task.Bathroom:
+                return this.toiletPaper;
+            default:
+                return null;
+        }
+    }
+
+    public Vector3 GetSpawnPoint() // A method called if the spawn point is needed in another script.
+    {
+        switch (currentTask) // A switch statement to check the current task and return the correlated spawn point for the item of the task.
+        {
+            case Task.Kitchen:
+                return this.plateSpawnPoint;
+            case Task.Laundry:
+                return this.basketSpawnPoint;
+            case Task.TV:
+                return this.remoteSelectedSpawnPoint;
+            case Task.Bathroom:
+                return this.toiletPaperSpawnPoint;
+            default:
+                return Vector3.zero;
+        }
+    }
+
+    public Vector3 GetReturnPoint() // A method called if the return point is needed in another script.
+    {
+        switch (currentTask) // A switch statement to check the current task and return the correlated return point for the item of the task.
+        {
+            case Task.Kitchen:
+                return this.plateReturnPoint;
+            case Task.Laundry:
+                return this.basketReturnPoint;
+            case Task.TV:
+                return this.remoteReturnPoint;
+            case Task.Bathroom:
+                return this.toiletPaperReturnPoint;
+            default:
+                return Vector3.zero;
+        }
+    }
+
+    public void StopParticle() // A method called if the Particle System for an item needs removing from another script.
+    {
+        switch (currentTask) // A switch statement to check the current task and disable the Particle System for the current item of the task.
+        {
+            case Task.Kitchen:
+                this.plateFX.Stop();
+                return;
+            case Task.Laundry:
+                this.basketFX.Stop();
+                return;
+            case Task.TV:
+                this.remoteFX.Stop();
+                return;
+            case Task.Bathroom:
+                this.toiletPaperFX.Stop();
+                return;
+            default:
+                return;
+        }
+    }
+
+    public Task GetTask() // A method called if the task is needed in another script.
+    {
+        return this.currentTask;
+    }
+
+    public void SetTask() // A method called if a new task needs to be randomised and started.
+    {
+        this.currentTask = RandomiseTask();
+        StartTask(currentTask);
+    }
+
+    public Task RandomiseTask() // A method to allow a new Task to be randomised, determined and then returned to somewhere else when needed.
+    {
+        int randomisedNumber = Random.Range(1, 5); // Randomises an integer value.
+        return (Task)randomisedNumber; // Returns a determined enumeration task to wherever needed based on the integer value via type casting.
+    }
+
+    public void StartTask(Task task) // A method to allow the task being set in gameplay to be started after randomisation in the prior method.
+    {
+        switch (task) // A sorting system that will determine the randomised task, and call a method that handles the gameplay for that specific task.
+        {
+            case Task.Kitchen:
+                KitchenTask();
+                break;
+            case Task.Laundry:
+                LaundryTask();
+                break;
+            case Task.TV:
+                TVTask();
+                break;
+            case Task.Bathroom:
+                BathroomTask();
+                break;
+        }
+    }
+    public void KitchenTask() // Moves the plate into position for the task to begin.
+    {
+        plate.transform.position = plateSpawnPoint;
+        plateFX.Play();
+        Debug.Log("Plate has fallen! Pick it up!");
+        uiSystem.SetMessage(kitchenTaskMessage);
+        uiSystem.DisplayTimer();
+        timeSystem.SetTimer(GetTaskTime());
+    }
+
+    public void LaundryTask() // Moves the basket into position for the task to begin.
+    {
+        basket.transform.position = basketSpawnPoint;
+        basketFX.Play();
+        Debug.Log("Basket is ready to bring outside!");
+        uiSystem.SetMessage(laundryTaskMessage);
+        uiSystem.DisplayTimer();
+        timeSystem.SetTimer(GetTaskTime());
+    }
+
+    public void TVTask() // Moves the remote into a position for the task to begin.
+    {
+        int randomisedNumber = Random.Range(0, 5);
+        remoteSelectedSpawnPoint = remoteSpawnPoints[randomisedNumber]; // Randomised Vector3 set to a single Vector3 for reference.
+        remote.transform.position = remoteSelectedSpawnPoint;
+        remoteFX.Play();
+        televisionScreen.GetComponent<Renderer>().material = this.staticScreen;
+        Debug.Log("TV is glitching! Where's the remote?");
+        uiSystem.SetMessage(televisionTaskMessage);
+        uiSystem.DisplayTimer();
+        timeSystem.SetTimer(GetTaskTime());
+    }
+
+    public void BathroomTask() // Moves the toilet roll into position for the task to begin.
+    {
+        toiletPaper.transform.position = toiletPaperSpawnPoint;
+        toiletPaperFX.Play();
+        toiletPaper.transform.rotation = Quaternion.Euler(toiletPaperSpawnRotation);
+        Debug.Log("We need Toilet Paper. Get some from the closet!");
+        uiSystem.SetMessage(bathroomTaskMessage);
+        uiSystem.DisplayTimer();
+        timeSystem.SetTimer(GetTaskTime());
+    }
+
+    public void TaskCompleted()
+    {
+        this.tasksCompleted += 1;
+    }
+
+    public int GetTasksCompleted()
+    {
+        return this.tasksCompleted;
+    }
+
+    public float GetTaskTime()
+    {
+        return this.taskTime;
+    }
+
+    public void DecreaseTaskTime(float timerDecrease)
+    {
+        this.taskTime -= timerDecrease; 
+    }
+
+    public void ResetTaskTime()
+    {
+        this.taskTime = 20.99f;
+    }
+
+    public void EndGame()
+    {
+        this.isGameOver = true;
+        uiSystem.HideTimer();
+        uiSystem.SetMessage(gameOver);
+        scoreSystem.SetHighScore();
+        uiSystem.DisplayEndHighScore();
+    }
+
+    public bool GameOverCheck()
+    {
+        return this.isGameOver; 
+    }
+
+    public void RestartGame()
+    {
+        this.isGameOver = false;
+        uiSystem.SetMessage(retry);
+
+        this.currentTask = RandomiseTask();
+        timeSystem.SetTimer(0.0f);
+        scoreSystem.ResetScore();
+        uiSystem.HideEndHighScore();
+        valueSystem.ResetScoreMultiplier();
+        valueSystem.ResetTaskDelay();
+        ResetTaskTime();
+
+        Invoke(nameof(SetTask), 5.0f);
+    }
+
+    public void Update()
+    {
+        if (this.isGameOver == true && Input.GetKeyDown(KeyCode.E))
+        {
+            RestartGame();
+        }
+    }
+}
