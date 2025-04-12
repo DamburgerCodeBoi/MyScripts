@@ -1,0 +1,95 @@
+#include <iostream>
+#include <string>
+
+// Declared Methods
+void Randomiser();
+void Guess();
+void Response();
+void Success();
+void Reset();
+
+// Declared Variables
+int randomNumber;
+int guessNumber;
+int guesses;
+int replay;
+
+void Randomiser()
+{
+	guesses = 0;
+	randomNumber = (rand() % 100) + 1;
+
+	std::cout << "A Random Number From 1 - 100 Has Been Chosen! \n";
+	std::cout << "What number do you think it is?: ";
+
+	Guess();
+}
+
+void Guess()
+{
+	do
+	{
+    	std::cin >> guessNumber;
+
+    	if (guessNumber < 1 || guessNumber > 100)
+    	{
+        	std::cout << "Invalid! Guess Again! ";
+    	}
+	}
+	while (guessNumber < 1 || guessNumber > 100);
+
+	guesses++;
+
+	Response();
+}
+
+void Response()
+{
+	if (guessNumber != randomNumber)
+	{
+    	if (guessNumber < randomNumber)
+    	{
+        	std::cout << "Higher! ";
+    	}
+    	else if (guessNumber > randomNumber)
+    	{
+        	std::cout << "Lower! ";
+    	}
+
+    	Guess();
+	}
+	else
+	{
+    	Success();
+	}
+}
+
+void Success()
+{
+	std::cout << "Congratulations! " << guessNumber << " was correct! \n";
+	std::cout << "Guessed in: " << guesses << " Tries \n \n";
+
+	Reset();
+}
+
+void Reset()
+{
+	std::cout << "Type 1 To Replay! ";
+	std::cin >> replay;
+
+	if (replay == 1)
+	{
+    	std::cout << "\n \n";
+
+    	Randomiser();
+	}
+}
+
+int main()
+{
+	srand(time(NULL));
+
+	Randomiser();
+
+	return 0;
+}
