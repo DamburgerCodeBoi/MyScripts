@@ -1,0 +1,150 @@
+#include <iostream>
+#include <string>
+
+// Using
+using std::string; using std::cout; using std::cin;
+
+// Rock Paper Scissors Type Enumeration
+enum RpS
+{
+	Rock = 1,
+	Paper = 2,
+	Scissors = 3
+};
+
+// Declared Methods
+void ChoiceSelect();
+string Conversion(RpS choice);
+void Clash(RpS you, RpS opponent);
+
+void ChoiceSelect()
+{
+	// Opponent's Play
+	int random = (rand() % 3) + 1;
+	RpS opponentChoice = static_cast<RpS>(random);
+
+	int yourNumber;
+	RpS yourChoice;
+
+	do
+	{
+    	cin >> yourNumber;
+
+    	if (yourNumber < 1 || yourNumber > 3)
+    	{
+        	cout << "Invalid! Choose Again: ";
+    	}
+
+	} while (yourNumber < 1 || yourNumber > 3);
+
+	yourChoice = static_cast<RpS>(yourNumber);
+
+	Clash(yourChoice, opponentChoice);
+}
+
+string Conversion(RpS choice)
+{
+	switch (choice)
+	{
+	case Rock: return "Rock"; break;
+	case Paper: return "Paper"; break;
+	case Scissors: return "Scissors"; break;
+	}
+}
+
+void Clash(RpS you, RpS opponent)
+{
+	cout << "Rock! \n" << "Paper! \n" << "Scissors! \n" << "Shoot! \n \n";
+	cout << "You chose " << Conversion(you) << '\n';
+	cout << "Your opponent chose " << Conversion(opponent) << '\n';
+
+	if (you == Rock)
+	{
+    	switch (opponent)
+    	{
+        	case Rock:
+            	cout << "Tie!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+
+        	case Paper:
+            	cout << "Lose!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+
+        	case Scissors:
+            	cout << "Win!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+    	}
+	}
+	else if (you == Paper)
+	{
+    	switch (opponent)
+    	{
+        	case Rock:
+            	cout << "Win!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+
+        	case Paper:
+            	cout << "Tie!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+
+        	case Scissors:
+            	cout << "Lose!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+    	}
+	}
+	else if (you == Scissors)
+	{
+    	switch (opponent)
+    	{
+        	case Rock:
+            	cout << "Lose!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+
+        	case Paper:
+            	cout << "Win!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+
+        	case Scissors:
+            	cout << "Tie!";
+
+            	cout << '\n' << "Select Again!" << '\n';
+            	ChoiceSelect();
+            	break;
+    	}
+	}
+}
+
+int main()
+{
+	srand(time(NULL));
+
+	cout << "Type 1 For Rock | Type 2 For Paper | Type 3 For Scissors \n";
+
+	ChoiceSelect();
+
+	return 0;
+}
