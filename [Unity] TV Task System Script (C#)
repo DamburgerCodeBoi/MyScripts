@@ -1,0 +1,128 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class TVTask : MonoBehaviour
+{
+    private TaskSystem task;
+    bool isRemoteCollected = false;
+    private Collider hitbox;
+    GameObject televisionScreen;
+    private Material blackScreen; // The static TV screen is assigned in TaskSystem. The black TV screen gets restored here as the task is completed.
+    private ScoreSystem scoreSystem;
+    private UISystem uiSystem;
+    private bool isTaskCompleted = false;
+    string televisionTaskMessage1 = "You've got the remote! Now turn off the TV!";
+    string televisionTaskMessage2 = "You've turned the TV off! Well Done!";
+    private TimerSystem timeSystem;
+    private ValueSystem valueSystem;
+
+    private void Start()
+    {
+        hitbox = GameObject.Find("Cupboard").GetComponent<BoxCollider>(); // Assigns hitbox to the hitbox collision that uses the remote.
+        task = GameObject.Find("TaskManager").GetComponent<TaskSystem>();
+        televisionScreen = GameObject.Find("TVScreen");
+        blackScreen = GameObject.Find("BlackScreen").GetComponent<Renderer>().material; // Assigns material to the variable to restore the TV screen once the task is completed.
+        scoreSystem = GameObject.Find("ScoreManager").GetComponent<ScoreSystem>();
+        uiSystem = GameObject.Find("UIManager").GetComponent<UISystem>();
+        timeSystem = GameObject.Find("TimeManager").GetComponent<TimerSystem>();
+        valueSystem = GameObject.Find("ValueManager").GetComponent<ValueSystem>();
+    }
+
+    public void OnTriggerStay(Collider other) // Collider is Player. Other is either remote or a hitbox (conditioned).
+    {
+        if (other.name == task.GetItem().name) // Checks for remote collision.
+        {
+            if (other.transform.position == task.GetSpawnPoint() && task.GetTask() == Task.TV && Input.GetMouseButton(0) && task.GameOverCheck() != true)
+            {
+                uiSystem.SetMessage(televisionTaskMessage1);
+                Debug.Log("Remote has been found!");
+                task.StopParticle();
+                isRemoteCollected = true;
+                other.transform.position = new Vector3(0.0f, 500.0f, 0.0f);
+            }
+        }
+        if (other.name == hitbox.gameObject.name) // If the collider's name is the same as the hitbox object's name.
+        {
+            if (isRemoteCollected == true && task.GetTask() == Task.TV && Input.GetMouseButton(0) && task.GameOverCheck() != true) // If the remote is collected and the task is TV.
+            {
+                uiSystem.SetMessage(televisionTaskMessage2);
+                Debug.Log("The TV is fixed!");
+                task.GetItem().transform.position = task.GetReturnPoint();
+                task.TaskCompleted();
+                isRemoteCollected = false;
+                televisionScreen.GetComponent<Renderer>().material = blackScreen;
+                scoreSystem.AddScore(100);
+                isTaskCompleted = true;
+                uiSystem.HideTimer();
+                Invoke(nameof(GetNextTask), valueSystem.GetTaskDelay());
+            }
+        }
+    }
+    public void GetNextTask()
+    {
+        if (task.GameOverCheck() == false)
+        {
+            valueSystem.SetTaskDelay(task.GetTasksCompleted());
+            valueSystem.DecreaseTimer(task.GetTasksCompleted());
+            valueSystem.IncreaseScoreMultiplier(task.GetTasksCompleted());
+
+            isTaskCompleted = false;
+            task.SetTask();
+            uiSystem.DisplayTimer();
+        }
+    }
+
+    public void OnTriggerEnter(Collider other) // Checks for if Left Click UI prompt can be shown as the player enters a hitbox. OnTriggerExit does the same but backwards.
+    {
+        if (other.name == task.GetItem().name && task.GetTask() == Task.TV && task.GameOverCheck() != true)
+        {
+            uiSystem.DisplayLeftClick();
+        }
+        else if (other.name == hitbox.gameObject.name && isRemoteCollected == true && task.GameOverCheck() != true)
+        {
+            uiSystem.DisplayLeftClick();
+        }
+    }
+
+    public void OnTriggerExit(Collider other) // Checks for if Left Click UI prompt can be shown as the player enters a hitbox. OnTriggerExit does the same but backwards.
+    {
+        if (other.name == task.GetItem().name || other.name == hitbox.gameObject.name && task.GetTask() == Task.TV && task.GameOverCheck() != true)
+        {
+            uiSystem.HideLeftClick();
+        }
+    }
+
+    public void Update()
+    {
+        if (isTaskCompleted == true)
+        {
+            uiSystem.HideLeftClick();
+        }
+
+        if (task.GetTask() == Task.TV)
+        {
+            TimerCheck();
+        }
+    }
+
+    public void TimerCheck()
+    {
+        if (timeSystem.GetTimer() == 0.99f && isTaskCompleted == false)
+        {
+            EndTask();
+        }
+    }
+
+    public void EndTask()
+    {
+        if (task.GameOverCheck() != true)
+        {
+            task.StopParticle();
+            task.GetItem().transform.position = task.GetReturnPoint();
+
+            task.EndGame();
+        }
+    }
+}
