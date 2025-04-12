@@ -1,0 +1,76 @@
+#include <iostream>
+
+int main()
+{
+    char op;
+    double num1;
+    double num2;
+    double result;
+    
+    std::cout << "CALCULATOR IN OPERATION" << '\n' << '\n';
+    
+    
+    std::cout << "Enter any of the following operators; (+) (-) (*) (/):" << '\n';
+    std::cin >> op;
+    
+    switch(op)
+    {
+        case '+':
+        std::cout << "ADDITION IN OPERATION" << '\n' << '\n';
+        break;
+        
+        case '-':
+        std::cout << "SUBTRACTION IN OPERATION" << '\n' << '\n';
+        break;
+        
+        case '*':
+        std::cout << "MULTIPLICATION IN OPERATION" << '\n' << '\n';
+        break;
+        
+        case '/':
+        std::cout << "DIVISION IN OPERATION" << '\n' << '\n';
+        break;
+        
+        default:
+        std::cout << '\n';
+        std::cout << "INVALID OPERATION SELECTED - PLEASE RESTART THE SYSTEM AND TRY AGAIN";
+        return 0;
+    }
+    
+    std::cout << "Enter your first number:" << '\n';
+    std::cin >> num1;
+    std::cout << '\n';
+    
+    std::cout << "Enter your second number:" << '\n';
+    std::cin >> num2;
+    std::cout << '\n';
+    
+    std::cout << "Proceeding with calculation:" << '\n';
+    std::cout << num1 << " "  << op << " "  << num2 << '\n' << '\n';
+    
+    switch(op)
+    {
+        case '+':
+        result = num1 + num2;
+        break;
+        
+        case '-':
+        result = num1 - num2;
+        break;
+        
+        case '*':
+        result = num1 * num2;
+        break;
+        
+        case '/':
+        result = num1 / num2;
+        break;
+    }
+    
+    std::cout << "Result:" << '\n';
+    std::cout << result << '\n' << '\n';
+    
+    std::cout << "SOLUTION CALCULATED - RESTART THE SYSTEM TO MAKE A NEW CALCULATION";
+    
+    return 0;
+}
