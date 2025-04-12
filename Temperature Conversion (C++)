@@ -1,0 +1,217 @@
+#include <iostream>
+
+// Declared Methods
+void Intro();
+void MachineInput();
+void MachineOutput();
+void Reset();
+
+double CtoF();
+double CtoK();
+
+double FtoC();
+double FtoK();
+
+double KtoC();
+double KtoF();
+
+// Declared Global Variables
+double value;
+double tempValue;
+double newValue;
+
+char type;
+char newType;
+
+int retry;
+
+// Machine Introduction
+void Intro()
+{
+    std::cout << "This machine will convert a given temperature to its equivalent value in another selected temperature system. \n \n";
+
+    MachineInput();
+}
+
+// Machine Control Flow
+void MachineInput()
+{
+    // User Input
+    std::cout << "What is the temperature value?: \n";
+    std::cin >> value;
+    std::cout << "\n";
+
+    std::cout << "What is the value's temperature system?: \n";
+    std::cout << "[ Type 'C' For Celcius | Type 'F' For Farrenheit | Type 'K' For Kelvin ] \n";
+    std::cin >> type;
+    std::cout << "\n";
+
+    std::cout << "What temperature system would you like to convert the value to?: \n";
+    std::cout << "[ Type 'C' For Celcius | Type 'F' For Farrenheit | Type 'K' For Kelvin ] \n";
+    std::cin >> newType;
+    std::cout << "\n";
+
+    // Check For Identical Temperature System Input
+    if (type == newType)
+    {
+        std::cout << "Your selected temperatures are identical. Conversion is not necessary. \n";
+
+        Reset();
+    }
+
+    // Check For Invalid Temperature System Input
+    if ((type != 'C' && type != 'F' && type != 'K') || (newType != 'C' && newType != 'F' && newType != 'K'))
+    {
+        std::cout << "One of your selected temperature types was invalid. This machine supports only the following: \n";
+        std::cout << "[ 'C' For Celcius | 'F' For Farrenheit | 'K' For Kelvin ] \n \n";
+
+        Reset();
+    }
+
+    // Check For Invalid Value Input
+    if (std::isnan(value))
+    {
+        std::cout << "Your provided value is not a number. This machine supports temperature conversion, which requires a number. \n \n";
+
+        Reset();
+    }
+
+    // Determine Calculation Method
+    switch (type)
+    {
+        // If Celcius Is Selected
+        case 'C':
+            switch (newType)
+            {
+                case 'F':
+                    newValue = CtoF();
+
+                    MachineOutput();
+                    break;
+
+                case 'K':
+                    newValue = CtoK();
+
+                    MachineOutput();
+                    break;
+            }
+            break;
+
+        // If Farrenheit Is Selected
+        case 'F':
+            switch (newType)
+            {
+                case 'C':
+                    newValue = FtoC();
+
+                    MachineOutput();
+                    break;
+
+                case 'K':
+                    newValue = FtoK();
+
+                    MachineOutput();
+                    break;
+            }
+            break;
+
+        // If Kelvin Is Selected
+        case 'K':
+            switch (newType)
+            {
+                case 'C':
+                    newValue = KtoC();
+
+                    MachineOutput();
+                    break;
+
+                case 'F':
+                    newValue = KtoF();
+
+                    MachineOutput();
+                    break;
+            }
+
+            break;
+    }
+}
+
+// Celcius To Farrenheit Calculation
+double CtoF()
+{
+    tempValue = (value * 1.8) + 32;
+
+    return tempValue;
+}
+
+// Celcius To Kelvin Calculation
+double CtoK()
+{
+    tempValue = value + 273.15;
+
+    return tempValue;
+}
+
+// Farrenheit To Celcius Calculation
+double FtoC()
+{
+    tempValue = (value - 32) / 1.8;
+
+    return tempValue;
+}
+
+// Farrenheit To Kelvin Calculation
+double FtoK()
+{
+    tempValue = ((value - 32) / 1.8) + 273.15;
+
+    return tempValue;
+}
+
+// Kelvin To Celcius Calculation
+double KtoC()
+{
+    tempValue = value - 273.15;
+
+    return tempValue;
+}
+
+// Kelvin To Farrenheit Calculation
+double KtoF()
+{
+    tempValue = ((value - 273.15) * 1.8) + 32;
+
+    return tempValue;
+}
+
+// Machine Output
+void MachineOutput()
+{
+    std::cout << "The machine has completed your temperature conversion: \n";
+    std::cout << newValue << " " << newType << "\n \n";
+
+    Reset();
+}
+
+// Machine Reset Option
+void Reset()
+{
+    std::cout << "Would you like to reset the machine? \n";
+    std::cout << "[ Type '1' For Yes ] \n";
+    std::cin >> retry;
+    std::cout << "\n";
+
+    if (retry == 1)
+    {
+        retry = 0;
+
+        MachineInput();
+    }
+}
+
+int main()
+{
+    Intro();
+
+    return 0;
+}
