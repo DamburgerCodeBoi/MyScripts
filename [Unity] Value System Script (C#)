@@ -1,0 +1,61 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ValueSystem : MonoBehaviour
+{
+    TaskSystem task;
+    private float taskDelay = 5.0f;
+    private int scoreMultiplier = 1;
+    private float timerDecrease = 1f;
+
+    public void Start()
+    {
+        task = GameObject.Find("TaskManager").GetComponent<TaskSystem>();
+    }
+
+    public void SetTaskDelay(int tasksCompleted)
+    {
+        if (tasksCompleted % 3 == 0 && this.taskDelay != 0.5f)
+        {
+            taskDelay -= 0.5f;
+            Debug.Log("Task Delay: " + this.taskDelay);
+        }
+    }
+
+    public float GetTaskDelay()
+    {
+        return this.taskDelay; 
+    }
+
+    public void ResetTaskDelay()
+    {
+        this.taskDelay = 5.0f;
+    }
+
+    public void DecreaseTimer(int tasksCompleted)
+    {
+        if (tasksCompleted % 3 == 0 && this.timerDecrease != 0.0f)
+        {
+            task.DecreaseTaskTime(this.timerDecrease);
+        }
+    }
+
+    public void IncreaseScoreMultiplier(int tasksCompleted)
+    {
+        if (tasksCompleted % 3 == 0)
+        {
+            scoreMultiplier += 1;
+        }
+    }
+
+    public int GetScoreMultiplier()
+    {
+        return scoreMultiplier;
+    }
+
+    public void ResetScoreMultiplier()
+    {
+        scoreMultiplier = 1;
+    }
+}
