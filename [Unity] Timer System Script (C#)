@@ -1,0 +1,43 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class TimerSystem : MonoBehaviour
+{
+    private float timer;
+    TaskSystem task;
+
+    public void Start()
+    {
+        task = GameObject.Find("TaskManager").GetComponent<TaskSystem>();
+    }
+
+    public void Update()
+    {
+        if (this.timer > 0.99f && task.GameOverCheck() == false)
+        {
+            TimerDecrease();
+        }
+
+        if (this.timer <= 0.99f && this.timer != 0.0f)
+        {
+            timer = 0.99f;
+        }
+    }
+
+    public void SetTimer(float seconds)
+    {
+        this.timer = seconds;
+    }
+
+    public float GetTimer()
+    {
+        return this.timer;
+    }
+    
+    public void TimerDecrease()
+    {
+        this.timer -= 1 * Time.deltaTime;
+    }
+}
